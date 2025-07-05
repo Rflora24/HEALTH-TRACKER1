@@ -1,0 +1,108 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}Notifications - Health Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                <h2 class="mb-0">Notifications</h2>
+                {% if notifications %}
+                <button class="btn btn-light btn-sm" onclick="markAllAsRead()">
+                    <i class="bi bi-check-all"></i> Mark All Read
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                {% if notifications %}
+                    <div class="notification-list">
+                        {% for notification in notifications %}
+                        <div class="notification-item p-3 border-bottom {% if not notification.is_read %}unread bg-light{% endif %}" 
+                             data-notification-id="{{ notification.id }}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <h6 class="mb-0 me-2">{{ notification.title }}</h6>
+                                        {% if not notification.is_read %}
+                                            <span class="badge bg-primary rounded-pill">New</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="mb-1 text-muted">{{ notification.message }}</p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock"></i> {{ notification.created_at|timesince }} ago
+                                    </small>
+                                </div>
+                                <div class="ms-3">
+                                    {% if not notification.is_read %}
+                                    <button class="btn btn-sm btn-outline-primary" onclick="markAsRead({{ notification.id }})">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-bell-slash display-1 text-muted"></i>
+                        <h4 class="mt-3 text-muted">No Notifications</h4>
+                        <p class="text-muted">You're all caught up! Check back later for updates.</p>
+                        <a href="{% url 'dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function markAsRead(notificationId) {
+    fetch(`/api/mark-notification-read/${notificationId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            notificationItem.classList.remove('unread', 'bg-light');
+            const badge = notificationItem.querySelector('.badge');
+            if (badge) badge.remove();
+            const button = notificationItem.querySelector('.btn');
+            if (button) button.remove();
+        }
+    });
+}
+
+function markAllAsRead() {
+    fetch('/api/mark-all-notifications-read/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+</script>
+
+<style>
+.notification-item {
+    transition: background-color 0.2s;
+}
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+.notification-item.unread {
+    border-left: 4px solid #007bff;
+}
+</style>
+{% endblock %} 

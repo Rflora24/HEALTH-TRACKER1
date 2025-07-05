@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Export Your Health Data</h2>
+  <div class="card mt-4">
+    <div class="card-body">
+      <form class="row g-3" method="get" action="{% url 'export_csv' %}">
+        <div class="col-md-4">
+          <label for="start_date" class="form-label">Start Date</label>
+          <input type="date" class="form-control" id="start_date" name="start_date">
+        </div>
+        <div class="col-md-4">
+          <label for="end_date" class="form-label">End Date</label>
+          <input type="date" class="form-control" id="end_date" name="end_date">
+        </div>
+        <div class="col-md-4 align-self-end">
+          <button type="submit" class="btn btn-primary w-100">Export as CSV</button>
+        </div>
+      </form>
+      <hr>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <a href="{% url 'export_pdf' %}" class="btn btn-danger w-100">Download PDF Report</a>
+        </div>
+        <div class="col-md-6">
+          <a href="{% url 'export_summary' %}?period=week" class="btn btn-success w-100 mb-2">Weekly Summary</a>
+          <a href="{% url 'export_summary' %}?period=month" class="btn btn-success w-100">Monthly Summary</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

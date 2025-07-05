@@ -1,0 +1,24 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Food Recommendations{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Food Recommendations</h2>
+    <div class="row">
+        {% for food in foods %}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ food.name }}</h5>
+                    <p class="card-text">{{ food.description }}</p>
+                    {% if food.calories %}
+                    <p class="card-text"><small class="text-muted">Calories: {{ food.calories }}</small></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No food recommendations available.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,1131 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<!-- Floating Action Button (FAB) -->
+<a href="{% url 'add_health_record' %}" class="fab btn btn-primary rounded-circle shadow-lg" title="Add Health Record">
+    <i class="bi bi-plus-lg" style="font-size: 2rem;"></i>
+</a>
+
+<div class="dashboard-container">
+    <!-- Modern Greeting Header -->
+    <div class="row align-items-center mb-4">
+        <div class="col-auto">
+            <div class="avatar-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; font-size: 2rem; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <i class="bi bi-person-fill"></i>
+            </div>
+        </div>
+        <div class="col">
+            <h2 class="fw-bold mb-1">Hello, {{ user.first_name|default:user.username }}! 👋</h2>
+            <p class="text-muted mb-0">{{ current_date|date:"l, F j, Y" }}</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'daily_reminder_settings' %}" class="btn btn-outline-primary">
+                <i class="bi bi-bell"></i> Set Daily Reminder
+            </a>
+        </div>
+    </div>
+
+    {# Show current reminder settings if set #}
+    {% if user.reminder_setting %}
+    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-bell-fill me-2"></i>
+        <div>
+            <strong>Daily Reminder:</strong> {{ user.reminder_setting.reminder_time|time:"H:i" }}
+            {% if user.reminder_setting.send_email and user.reminder_setting.send_in_app %}
+                (Email & In-App)
+            {% elif user.reminder_setting.send_email %}
+                (Email)
+            {% elif user.reminder_setting.send_in_app %}
+                (In-App)
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card shadow gradient-primary text-white h-100">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <i class="bi bi-activity display-5 mb-2"></i>
+                    <h3 class="fw-bold">{{ latest_record.weight|default:"--" }} kg</h3>
+                    <p class="mb-0">Current Weight</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow gradient-success text-white h-100">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <i class="bi bi-droplet-fill display-5 mb-2"></i>
+                    <h3 class="fw-bold">{{ latest_record.water_intake|default:"--" }} L</h3>
+                    <p class="mb-0">Water Intake</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow gradient-info text-white h-100">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <i class="bi bi-moon-stars-fill display-5 mb-2"></i>
+                    <h3 class="fw-bold">{{ latest_record.sleep_hours|default:"--" }} hrs</h3>
+                    <p class="mb-0">Sleep Hours</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow gradient-warning text-white h-100">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <i class="bi bi-emoji-smile-fill display-5 mb-2"></i>
+                    <h3 class="fw-bold">{{ latest_record.mood|default:"--" }}</h3>
+                    <p class="mb-0">Current Mood</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goal Progress Rings -->
+    {% if user.weight_goal or user.sleep_goal or user.water_goal %}
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <h4 class="mb-3">Goal Progress</h4>
+        </div>
+        {% if user.weight_goal %}
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <div class="progress-ring mb-3">
+                        <svg width="80" height="80">
+                            <circle cx="40" cy="40" r="35" stroke="#e9ecef" stroke-width="6" fill="none"/>
+                            <circle cx="40" cy="40" r="35" stroke="#007bff" stroke-width="6" fill="none" 
+                                    stroke-dasharray="{{ goal_progress.weight|floatformat:0|add:0 }} 100" 
+                                    stroke-dashoffset="25" transform="rotate(-90 40 40)"/>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="fw-bold">{{ goal_progress.weight|floatformat:0 }}%</span>
+                        </div>
+                    </div>
+                    <h6>Weight Goal</h6>
+                    <small class="text-muted">{{ user.weight_goal }} kg</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if user.sleep_goal %}
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <div class="progress-ring mb-3">
+                        <svg width="80" height="80">
+                            <circle cx="40" cy="40" r="35" stroke="#e9ecef" stroke-width="6" fill="none"/>
+                            <circle cx="40" cy="40" r="35" stroke="#28a745" stroke-width="6" fill="none" 
+                                    stroke-dasharray="{{ goal_progress.sleep|floatformat:0|add:0 }} 100" 
+                                    stroke-dashoffset="25" transform="rotate(-90 40 40)"/>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="fw-bold">{{ goal_progress.sleep|floatformat:0 }}%</span>
+                        </div>
+                    </div>
+                    <h6>Sleep Goal</h6>
+                    <small class="text-muted">{{ user.sleep_goal }} hours</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if user.water_goal %}
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <div class="progress-ring mb-3">
+                        <svg width="80" height="80">
+                            <circle cx="40" cy="40" r="35" stroke="#e9ecef" stroke-width="6" fill="none"/>
+                            <circle cx="40" cy="40" r="35" stroke="#17a2b8" stroke-width="6" fill="none" 
+                                    stroke-dasharray="{{ goal_progress.water|floatformat:0|add:0 }} 100" 
+                                    stroke-dashoffset="25" transform="rotate(-90 40 40)"/>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="fw-bold">{{ goal_progress.water|floatformat:0 }}%</span>
+                        </div>
+                    </div>
+                    <h6>Water Goal</h6>
+                    <small class="text-muted">{{ user.water_goal }} liters</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Time Range Selector -->
+    <div class="time-range-selector mb-4">
+        <div class="btn-group" role="group">
+            <a href="?range=7" class="btn {% if time_range == '7' %}btn-primary{% else %}btn-outline-primary{% endif %}">7 Days</a>
+            <a href="?range=30" class="btn {% if time_range == '30' %}btn-primary{% else %}btn-outline-primary{% endif %}">30 Days</a>
+            <a href="?range=90" class="btn {% if time_range == '90' %}btn-primary{% else %}btn-outline-primary{% endif %}">90 Days</a>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+        <!-- Weight Chart -->
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>Weight Trend</h4>
+                    <div class="chart-actions">
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-body">
+                    <canvas id="weightChart"></canvas>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                {{ weight_dates|json_script:"weight-dates" }}
+                {{ weight_values|json_script:"weight-values" }}
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var ctx = document.getElementById('weightChart');
+                    if (ctx) {
+                        var weightDates = JSON.parse(document.getElementById('weight-dates').textContent);
+                        var weightValues = JSON.parse(document.getElementById('weight-values').textContent);
+                        var weightChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: weightDates,
+                                datasets: [{
+                                    label: 'Weight (kg)',
+                                    data: weightValues,
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                    fill: true,
+                                    tension: 0.3,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { display: true },
+                                    title: { display: false }
+                                },
+                                scales: {
+                                    x: { title: { display: true, text: 'Date' } },
+                                    y: { title: { display: true, text: 'Weight (kg)' }, beginAtZero: false }
+                                }
+                            }
+                        });
+                    }
+                });
+                </script>
+            </div>
+        </div>
+
+        <!-- Mood Chart -->
+        <div class="col-lg-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>Mood Distribution</h4>
+                </div>
+                <div class="chart-body">
+                    <canvas id="moodChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sleep Hours Trend Chart -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>Sleep Hours Trend</h4>
+                </div>
+                <div class="chart-body">
+                    <canvas id="sleepChart"></canvas>
+                </div>
+                {{ sleep_dates|json_script:"sleep-dates" }}
+                {{ sleep_values|json_script:"sleep-values" }}
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var ctx = document.getElementById('sleepChart');
+                    if (ctx) {
+                        var sleepDates = JSON.parse(document.getElementById('sleep-dates').textContent);
+                        var sleepValues = JSON.parse(document.getElementById('sleep-values').textContent);
+                        var sleepChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: sleepDates,
+                                datasets: [{
+                                    label: 'Sleep Hours',
+                                    data: sleepValues,
+                                    borderColor: 'rgba(255, 99, 132, 1)',
+                                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                    fill: true,
+                                    tension: 0.3,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { display: true },
+                                    title: { display: false }
+                                },
+                                scales: {
+                                    x: { title: { display: true, text: 'Date' } },
+                                    y: { title: { display: true, text: 'Sleep Hours' }, beginAtZero: true, suggestedMax: 12 }
+                                }
+                            }
+                        });
+                    }
+                });
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <!-- Water Intake Trend Chart -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>Water Intake Trend</h4>
+                </div>
+                <div class="chart-body">
+                    <canvas id="waterChart"></canvas>
+                </div>
+                {{ water_dates|json_script:"water-dates" }}
+                {{ water_values|json_script:"water-values" }}
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var ctx = document.getElementById('waterChart');
+                    if (ctx) {
+                        var waterDates = JSON.parse(document.getElementById('water-dates').textContent);
+                        var waterValues = JSON.parse(document.getElementById('water-values').textContent);
+                        var waterChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: waterDates,
+                                datasets: [{
+                                    label: 'Water Intake (L)',
+                                    data: waterValues,
+                                    borderColor: 'rgba(75, 192, 192, 1)',
+                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                    fill: true,
+                                    tension: 0.3,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { display: true },
+                                    title: { display: false }
+                                },
+                                scales: {
+                                    x: { title: { display: true, text: 'Date' } },
+                                    y: { title: { display: true, text: 'Water Intake (L)' }, beginAtZero: true, suggestedMax: 5 }
+                                }
+                            }
+                        });
+                    }
+                });
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Summary -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>Weekly Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-primary">{{ weekly_stats.records_count }}</h5>
+                                <p class="text-muted mb-0">Records This Week</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-success">{{ weekly_stats.avg_sleep|floatformat:1 }}</h5>
+                                <p class="text-muted mb-0">Avg Sleep (hrs)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-info">{{ weekly_stats.avg_water|floatformat:1 }}</h5>
+                                <p class="text-muted mb-0">Avg Water (L)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h5 class="text-warning">{{ weekly_stats.goal_achievement }}%</h5>
+                                <p class="text-muted mb-0">Goal Achievement</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Stats -->
+    <div class="weekly-stats mb-4">
+        <h4 class="section-title">Weekly Overview</h4>
+        <div class="row g-3">
+            {% for week in weekly_stats %}
+            <div class="col-md-4">
+                <div class="week-card">
+                    <div class="week-header">
+                        <h5>Week of {{ week.week_start|date:"M d" }}</h5>
+                    </div>
+                    <div class="week-stats">
+                        <div class="stat-item">
+                            <i class="bi bi-moon-stars"></i>
+                            <span>{{ week.sleep_hours|floatformat:1 }} hrs</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="bi bi-droplet"></i>
+                            <span>{{ week.water_intake|floatformat:1 }} L</span>
+                        </div>
+                        {% if week.weight %}
+                        <div class="stat-item">
+                            <i class="bi bi-activity"></i>
+                            <span>{{ week.weight|floatformat:1 }} kg</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Mood Journal -->
+    <div class="mood-journal mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="section-title">Mood Journal</h4>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMoodModal">
+                <i class="bi bi-plus-lg"></i> Add Entry
+            </button>
+        </div>
+        <div id="journalEntries" class="journal-entries">
+            <!-- Journal entries will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Advanced Analytics Section -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Weekly Sleep Analytics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6>Average Sleep</h6>
+                            <p class="h4 text-primary">{{ weekly_analytics.avg_sleep|floatformat:1 }} hours</p>
+                        </div>
+                        <div class="col-6">
+                            <h6>Current Streak</h6>
+                            <p class="h4 text-success">{{ weekly_analytics.sleep_streak }} days</p>
+                        </div>
+                    </div>
+                    {% if weekly_analytics.best_sleep_day %}
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            Best day: {{ weekly_analytics.best_sleep_day.date|date:"M d" }} 
+                            ({{ weekly_analytics.best_sleep_day.sleep_hours }} hours)
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Weekly Water Analytics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6>Average Water</h6>
+                            <p class="h4 text-info">{{ weekly_analytics.avg_water|floatformat:1 }} liters</p>
+                        </div>
+                        <div class="col-6">
+                            <h6>Current Streak</h6>
+                            <p class="h4 text-success">{{ weekly_analytics.water_streak }} days</p>
+                        </div>
+                    </div>
+                    {% if weekly_analytics.best_water_day %}
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            Best day: {{ weekly_analytics.best_water_day.date|date:"M d" }} 
+                            ({{ weekly_analytics.best_water_day.water_intake }} liters)
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Analytics Section -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Monthly Performance (Last 30 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <h6>Average Sleep</h6>
+                            <p class="h4 text-primary">{{ monthly_analytics.avg_sleep|floatformat:1 }} hours</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>Average Water</h6>
+                            <p class="h4 text-info">{{ monthly_analytics.avg_water|floatformat:1 }} liters</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>Sleep Goal Achievement</h6>
+                            <p class="h4 text-success">{{ monthly_analytics.sleep_goal_percentage|floatformat:1 }}%</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h6>Water Goal Achievement</h6>
+                            <p class="h4 text-success">{{ monthly_analytics.water_goal_percentage|floatformat:1 }}%</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            Total records: {{ monthly_analytics.total_records }} | 
+                            Sleep goals met: {{ monthly_analytics.sleep_goal_achieved }} | 
+                            Water goals met: {{ monthly_analytics.water_goal_achieved }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Record Modal -->
+<div class="modal fade" id="addRecordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Health Record</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'add_health_record' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Weight (kg)</label>
+                        <input type="number" step="0.1" class="form-control" name="weight">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sleep Hours</label>
+                        <input type="number" step="0.5" class="form-control" name="sleep_hours">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Water Intake (L)</label>
+                        <input type="number" step="0.1" class="form-control" name="water_intake">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mood</label>
+                        <select class="form-select" name="mood">
+                            <option value="">Select mood...</option>
+                            <option value="Happy">😊 Happy</option>
+                            <option value="Sad">😢 Sad</option>
+                            <option value="Neutral">😐 Neutral</option>
+                            <option value="Stressed">😰 Stressed</option>
+                            <option value="Excited">🤩 Excited</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" name="notes" rows="3"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Record</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Mood Modal -->
+<div class="modal fade" id="addMoodModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Mood Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="moodEntryForm">
+                    <div class="mb-3">
+                        <label class="form-label">How are you feeling?</label>
+                        <div class="mood-selector">
+                            <button type="button" class="mood-btn" data-mood="Happy">😊</button>
+                            <button type="button" class="mood-btn" data-mood="Sad">😢</button>
+                            <button type="button" class="mood-btn" data-mood="Neutral">😐</button>
+                            <button type="button" class="mood-btn" data-mood="Stressed">😰</button>
+                            <button type="button" class="mood-btn" data-mood="Excited">🤩</button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Save Entry</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modern Dashboard Styles */
+.dashboard-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Floating Action Button */
+.floating-action-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+}
+
+.floating-action-btn .btn {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.2s;
+}
+
+.floating-action-btn .btn:hover {
+    transform: scale(1.1);
+}
+
+/* Header Styles */
+.greeting {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.notification-bell {
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+}
+
+/* Gradient Backgrounds */
+.gradient-primary {
+    background: linear-gradient(135deg, #4f8cff 0%, #3358e6 100%);
+    color: white;
+}
+
+.gradient-success {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+}
+
+.gradient-info {
+    background: linear-gradient(135deg, #43c6ac 0%, #191654 100%);
+    color: white;
+}
+
+.gradient-warning {
+    background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+    color: white;
+}
+
+/* Stat Cards */
+.stat-card {
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-right: 15px;
+    opacity: 0.9;
+}
+
+.stat-info h3 {
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.stat-info p {
+    margin: 0;
+    opacity: 0.8;
+}
+
+/* Chart Cards */
+.chart-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.chart-header h4 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Week Cards */
+.week-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.week-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.week-header {
+    margin-bottom: 15px;
+}
+
+.week-header h5 {
+    font-weight: 600;
+    margin: 0;
+}
+
+.week-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.stat-item i {
+    color: #0d6efd;
+    font-size: 1.2rem;
+}
+
+/* Journal Entries */
+.journal-entries {
+    display: grid;
+    gap: 15px;
+}
+
+.journal-entry {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.journal-entry:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+/* Mood Selector */
+.mood-selector {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.mood-btn {
+    font-size: 1.5rem;
+    padding: 12px;
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mood-btn:hover {
+    border-color: #0d6efd;
+    transform: scale(1.1);
+    background: #e7f1ff;
+}
+
+.mood-btn.selected {
+    border-color: #0d6efd;
+    background: #e7f1ff;
+    transform: scale(1.1);
+}
+
+/* Section Titles */
+.section-title {
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #212529;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 15px;
+    }
+    
+    .stat-card {
+        margin-bottom: 15px;
+    }
+    
+    .chart-card {
+        margin-bottom: 20px;
+    }
+    
+    .floating-action-btn {
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .floating-action-btn .btn {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+}
+
+/* Enhanced Header Styles */
+.header-section {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* Notification Styles */
+.notification-dropdown {
+    width: 320px;
+    padding: 0;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 12px;
+}
+
+.notification-header {
+    background: #f8f9fa;
+    border-radius: 12px 12px 0 0;
+}
+
+.notification-item {
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+
+.notification-item.unread {
+    background-color: #e7f1ff;
+}
+
+/* User Profile Styles */
+.user-avatar {
+    text-decoration: none;
+    color: #212529;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background: #e9ecef;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #6c757d;
+}
+
+.user-dropdown {
+    width: 250px;
+    padding: 0;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 12px;
+}
+
+.user-info {
+    background: #f8f9fa;
+    border-radius: 12px 12px 0 0;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.fab {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    font-size: 2rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.fab:hover, .fab:focus {
+    background: #3358e6;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    text-decoration: none;
+}
+@media (max-width: 768px) {
+    .fab {
+        bottom: 16px;
+        right: 16px;
+        width: 56px;
+        height: 56px;
+        font-size: 1.5rem;
+    }
+}
+
+body, html {
+    height: 100%;
+}
+.card {
+    border-radius: 1rem;
+}
+.card-header {
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+}
+.progress-ring {
+    position: relative;
+    display: inline-block;
+}
+.progress-ring svg {
+    transform: rotate(-90deg);
+}
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2rem;
+}
+.progress-ring circle {
+    transition: stroke-dasharray 0.5s ease-in-out;
+}
+</style>
+
+<script>
+    // Mood Chart
+    const moodCtx = document.getElementById('moodChart').getContext('2d');
+    const moodChart = new Chart(moodCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ mood_labels|safe }},
+            datasets: [{
+                data: {{ mood_data|safe }},
+                backgroundColor: [
+                    '#ffc107', // Happy
+                    '#dc3545', // Sad
+                    '#6c757d', // Neutral
+                    '#fd7e14', // Stressed
+                    '#20c997', // Excited
+                    '#0dcaf0', // Tired
+                    '#6610f2', // Angry
+                    '#198754', // Anxious
+                    '#0d6efd', // Peaceful
+                    '#d63384'  // Energetic
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            },
+            cutout: '70%'
+        }
+    });
+
+    // Load Mood Journal
+    function loadMoodJournal() {
+        fetch('/mood-journal/')
+            .then(response => response.json())
+            .then(data => {
+                const journalDiv = document.getElementById('journalEntries');
+                journalDiv.innerHTML = data.entries.map(entry => `
+                    <div class="journal-entry">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-2">${entry.date}</h5>
+                                <p class="mb-2">${entry.notes || ''}</p>
+                                <div class="stats">
+                                    <span class="badge bg-primary me-2">
+                                        <i class="bi bi-moon-stars"></i> ${entry.sleep} hrs
+                                    </span>
+                                    <span class="badge bg-info me-2">
+                                        <i class="bi bi-droplet"></i> ${entry.water} L
+                                    </span>
+                                    ${entry.weight ? `
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-activity"></i> ${entry.weight} kg
+                                        </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <span class="mood-emoji fs-1">${entry.mood}</span>
+                        </div>
+                    </div>
+                `).join('');
+            });
+    }
+
+    // Mood Selection
+    document.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+
+    // Load journal entries when page loads
+    document.addEventListener('DOMContentLoaded', loadMoodJournal);
+
+    // Mark all notifications as read
+    function markAllAsRead() {
+        const notificationIds = Array.from(document.querySelectorAll('.notification-item.unread'))
+            .map(item => item.dataset.notificationId);
+        
+        if (notificationIds.length > 0) {
+            fetch('{% url "notifications" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: 'notification_ids=' + notificationIds.join(',')
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Remove unread styling
+                    document.querySelectorAll('.notification-item.unread').forEach(item => {
+                        item.classList.remove('unread');
+                        const badge = item.querySelector('.badge');
+                        if (badge) badge.remove();
+                    });
+                    // Update notification count
+                    const badge = document.querySelector('.notification-badge');
+                    if (badge) badge.remove();
+                }
+            });
+        }
+    }
+
+    // Function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

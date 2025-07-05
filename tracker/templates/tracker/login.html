@@ -1,0 +1,70 @@
+{% extends 'tracker/base.html' %}
+
+{% block title %}Login - Health Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h2 class="mb-0">Sign In</h2>
+            </div>
+            <div class="card-body p-4">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {% if error_message %}
+                    <div class="alert alert-danger">
+                        {{ error_message }}
+                    </div>
+                {% endif %}
+                
+                {% if attempts_remaining is not None %}
+                    <div class="alert alert-info">
+                        Attempts remaining: {{ attempts_remaining }}
+                    </div>
+                {% endif %}
+
+                <form method="post" autocomplete="off">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username or Email</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Username or Email" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required autocomplete="current-password">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                    </div>
+                    <div class="mb-3 text-center">
+                        <a href="{% url 'password_reset' %}">Forgot password?</a>
+                    </div>
+                </form>
+                <div class="text-center mt-3">
+                    <p class="mb-0">Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<style>
+body, html {
+    height: 100%;
+}
+.card {
+    border-radius: 1rem;
+}
+.card-header {
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+}
+</style> 

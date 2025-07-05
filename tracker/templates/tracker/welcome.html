@@ -1,0 +1,75 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Welcome to Health Tracker{% endblock %}
+
+{% block content %}
+<style>
+    .hero {
+        background: linear-gradient(to right, #6a11cb, #2575fc);
+        color: white;
+        padding: 60px 20px;
+        text-align: center;
+        border-radius: 15px;
+        margin-bottom: 40px;
+    }
+    .hero h1 {
+        font-size: 3.5rem;
+        font-weight: bold;
+    }
+    .hero p {
+        font-size: 1.25rem;
+        margin-bottom: 20px;
+    }
+    .features {
+        padding: 40px 0;
+    }
+    .feature-card {
+        background: #f8f9fa;
+        border: none;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    .feature-card:hover {
+        transform: translateY(-10px);
+    }
+    .feature-icon {
+        font-size: 3rem;
+        color: #007bff;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="hero">
+    <h1>Welcome to Health Tracker</h1>
+    <p>Your personal dashboard to monitor and improve your well-being.</p>
+    <a href="{% url 'register' %}" class="btn btn-light btn-lg">Get Started</a>
+</div>
+
+<div class="features">
+    <div class="row text-center">
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">&#128200;</div>
+                <h3>Track Your Progress</h3>
+                <p>Monitor your weight, sleep, and water intake with our easy-to-use tracking tools. Visualize your progress with insightful charts.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">&#128522;</div>
+                <h3>Monitor Your Mood</h3>
+                <p>Keep a journal of your moods and discover correlations with your health habits. Understand what makes you feel your best.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon">&#128276;</div>
+                <h3>Stay Notified</h3>
+                <p>Receive personalized notifications and health recommendations to help you stay on track with your wellness goals.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

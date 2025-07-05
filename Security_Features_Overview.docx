@@ -1,0 +1,76 @@
+Security Features Overview for Django Health Tracker App
+
+1. Authentication
+Where: tracker/models.py (CustomUser), tracker/views.py (register, login, logout), tracker/backends.py (custom backend), settings.py (AUTH_USER_MODEL, AUTHENTICATION_BACKENDS)
+How it helps: Ensures only registered users can access their data and features. Supports login by username or email, and securely manages user credentials.
+Example: Only users who register and log in can add or view health records.
+Prevents: Unauthorized access, impersonation.
+
+2. Authorization
+Where: @login_required in tracker/views.py, role_required in tracker/decorators.py, role field in CustomUser (models.py)
+How it helps: Restricts access to sensitive pages and actions. Only authorized users (by login or role) can access certain features, protecting user data and admin functions.
+Example: Only logged-in users can access the dashboard or add health records. Admin-only features can be protected by role_required.
+Prevents: Privilege escalation, unauthorized data access.
+
+3. Secure Session Management
+Where: settings.py (SESSION_COOKIE_AGE, SESSION_EXPIRE_AT_BROWSER_CLOSE), Django's session middleware
+How it helps: Manages user sessions securely, controls session duration, and ensures sessions expire on browser close, reducing the risk of session hijacking.
+Example: If a user closes their browser, their session ends, so others can't access their account.
+Prevents: Session hijacking, session fixation.
+
+4. Input Validation and Sanitization
+Where: tracker/forms.py (form validation), tracker/models.py (field validators)
+How it helps: Prevents invalid or malicious data from being saved, protecting against attacks like SQL injection and ensuring data integrity.
+Example: HealthRecordForm ensures sleep hours are between 0 and 24, water intake is realistic, etc.
+Prevents: SQL injection, data corruption, XSS.
+
+5. CSRF Protection
+Where: settings.py (django.middleware.csrf.CsrfViewMiddleware), {% csrf_token %} in all forms
+How it helps: Prevents Cross-Site Request Forgery attacks, ensuring that only legitimate users can submit forms or perform actions.
+Example: All forms include {% csrf_token %}, so attackers can't forge requests.
+Prevents: CSRF attacks (e.g., tricking a user into submitting a form without their consent).
+
+6. Logging and Monitoring
+Where: settings.py (LOGGING config), /logs/ directory
+How it helps: Records important events and errors, helping you detect suspicious activity, debug issues, and maintain an audit trail.
+Example: All login attempts, errors, and important actions are logged for review.
+Prevents: Undetected attacks, helps with incident response.
+
+7. Account Lockout and Rate Limiting
+Where: tracker/backends.py (account lockout), tracker/rate_limit.py (rate limiting), settings.py (RATE_LIMIT_DEFAULTS)
+How it helps: Protects against brute-force attacks by locking accounts after repeated failed logins and limiting the rate of sensitive actions.
+Example: If a user enters the wrong password 5 times, their account is locked for 15 minutes.
+Prevents: Brute-force attacks, credential stuffing.
+
+8. Content Security Policy (CSP)
+Where: settings.py (CSP settings), csp.middleware.CSPMiddleware
+How it helps: Prevents many types of attacks (like XSS) by restricting which scripts, styles, and resources can be loaded in the browser.
+Example: Only scripts and styles from trusted sources are allowed to run.
+Prevents: Cross-site scripting (XSS), malicious resource loading.
+
+9. Error Handling and Information Disclosure
+Where: tracker/views.py (handler404, handler500), health_project/urls.py (custom error handlers), custom error templates
+How it helps: Prevents sensitive information from being shown to users when errors occur, and provides user-friendly error pages.
+Example: If a user visits a non-existent page, they see a friendly 404 page, not a stack trace.
+Prevents: Information leakage, targeted attacks using error details.
+
+10. No Hard Coding of Secrets
+Where: settings.py (uses os.getenv), .env file
+How it helps: Keeps sensitive information (like passwords and API keys) out of your codebase, reducing the risk of accidental leaks.
+Example: Database passwords and email credentials are stored in .env, not in code.
+Prevents: Secret/key exposure in version control or public repos.
+
+11. Password Security
+Where: Django's password hashing (default), tracker/views.py (uses create_user), (Optionally, AUTH_PASSWORD_VALIDATORS in settings.py)
+How it helps: Ensures user passwords are never stored in plain text, protecting users even if your database is compromised.
+Example: Even if someone accesses your database, they can't read user passwords.
+Prevents: Password theft, credential compromise.
+
+12. Secure Dependencies
+Where: requirements.txt, use of virtual environment (venv/)
+How it helps: Ensures you use only trusted, up-to-date packages, reducing the risk of vulnerabilities from third-party code.
+Example: All dependencies are listed and can be updated regularly.
+Prevents: Supply chain attacks, vulnerabilities from outdated packages.
+
+Not Fully Implemented (Deployment-Dependent):
+Encryption in Transit (HTTPS): Needs to be set up in your production server (Nginx, Apache, or cloud provider). Protects all data sent between users and your server from eavesdropping or tampering. 

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>{{ period }} Health Summary</h2>
+  <div class="card mt-4">
+    <div class="card-body">
+      <p><strong>Date Range:</strong> {{ start_date }} to {{ end_date }}</p>
+      <p><strong>Total Records:</strong> {{ total_records }}</p>
+      <p><strong>Average Sleep:</strong> {{ avg_sleep|floatformat:1 }} hrs</p>
+      <p><strong>Average Water Intake:</strong> {{ avg_water|floatformat:1 }} L</p>
+      <p><strong>Average Weight:</strong> {{ avg_weight|floatformat:1 }} kg</p>
+      <h5 class="mt-4">Mood Distribution</h5>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Mood</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for mood in mood_distribution %}
+          <tr>
+            <td>{{ mood.mood }}</td>
+            <td>{{ mood.count }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="2">No data</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <a href="{% url 'export_dashboard' %}" class="btn btn-secondary mt-3">Back to Export Options</a>
+    </div>
+  </div>
+</div>
+{% endblock %} 
